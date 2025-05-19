@@ -3,6 +3,13 @@ import streamlit as st
 import pandas as pd
 import yfinance as yf
 from datetime import date
+import numpy as np
+
+# -------- Streamlit session defaults -----------
+if "results" not in st.session_state:
+    st.session_state["results"] = None
+    st.session_state["label"]   = ""
+    st.session_state["last_dt"] = ""
 
 # ----------------------  GLOBAL CONFIG  ----------------------
 START_DATE = "2023-01-01"
@@ -17,54 +24,31 @@ DATASETS = {
 
 # ----------------------  CORE CALC ---------------------------
 def _clean_symbols(df: pd.DataFrame) -> list[str]:
-    """Return sorted ticker list with a few hard-coded fixes."""
     return sorted(
-        sym for sym in (
-            df["Symbol"]
-            .replace({"BRK.B": "BRK-B"})
-            .unique()
-            .tolist()
-        )
-        if sym != "ATVI"           # example exclusion
+        sym for sym in df["Symbol"].replace({"BRK.B": "BRK-B"}).unique()
+        if sym != "ATVI"
     )
 
 def run_momentum(symbols: list[str], label: str):
     total_syms = len(symbols)
-    st.write(f"### 🔄 Loading {label} ticker list")
-    st.write(f"Found **{total_syms}** symbols.")
+    st.write(f"### 🔄 Loading {label} ticker list  —  {total_syms} symbols")
 
     progress = st.progress(0, text="Downloading prices…")
     status   = st.empty()
 
-    chunks = [symbols[i:i + CHUNK_SIZE] for i in range(0, total_syms, CHUNK_SIZE)]
+    chunks = [symbols[i:i+CHUNK_SIZE] for i in range(0, total_syms, CHUNK_SIZE)]
     close_list = []
-    for idx, chunk in enumerate(chunks, start=1):
+    for idx, chunk in enumerate(chunks, 1):
         status.write(f"Batch {idx}/{len(chunks)} – {len(chunk)} tickers")
-        df = yf.download(
-            tickers=chunk,
-            start=START_DATE,
-            end=END_DATE,
-            progress=False,
-            actions=False,
-        )["Close"]
-        close_list.append(df)
-        progress.progress(idx / len(chunks))
+        close_list.append(
+            yf.download(chunk, start=START_DATE, end=END_DATE,
+                        progress=False, actions=False)["Close"]
+        )
+        progress.progress(idx/len(chunks))
+    progress.empty(); status.write("✅ Price download complete")
 
-    progress.empty()
-    status.write("✅ Price download complete")
-
-    df_close   = pd.concat(close_list, axis=1).sort_index()
+    df_close = pd.concat(close_list, axis=1).sort_index()
     valid_cols = [c for c in df_close.columns if df_close[c].count() >= MIN_OBS]
-    excluded   = sorted(set(df_close.columns) - set(valid_cols))
-
-    st.write(
-        f"""
-        **History check (≥ {MIN_OBS} trading days)**  
-        • OK: **{len(valid_cols)}**  
-        • Excluded: **{len(excluded)}**
-        """
-    )
-
     df_close = df_close[valid_cols]
 
     ret_252   = df_close.pct_change(252)
@@ -73,95 +57,110 @@ def run_momentum(symbols: list[str], label: str):
     momentum  = (ret_252 - ret_21) / stdev_126
 
     last_date = momentum.dropna(how="all").index.max()
-    if last_date is None:
-        st.error("No valid momentum data found.")
-        st.stop()
-
-    # Get latest prices for those tickers
-    latest_prices = df_close.loc[last_date]
+    latest_px = df_close.loc[last_date]
 
     df_out = pd.DataFrame({
-        "momentum":   momentum.loc[last_date],
-        "1yr_return (%)": (ret_252.loc[last_date] * 100).round(2),
-        "1m_return (%)":  (ret_21.loc[last_date] * 100).round(2),
-        "6m_std (%)":     (stdev_126.loc[last_date] * 100).round(2),
-        "last_price":     latest_prices
+        "momentum":        momentum.loc[last_date],
+        "1yr_return (%)": (ret_252.loc[last_date]*100).round(2),
+        "1m_return (%)":  (ret_21.loc[last_date]*100).round(2),
+        "6m_std (%)":     (stdev_126.loc[last_date]*100).round(2),
+        "last_price":      latest_px
     }).dropna().sort_values("momentum", ascending=False)
 
-    # Add Rank column
-    df_out.insert(5, "Rank", range(1, len(df_out) + 1))
-
+    df_out.insert(0, "Rank", range(1, len(df_out)+1))
     return last_date.date(), df_out
 
 # ----------------------  STREAMLIT PAGE ----------------------
 st.set_page_config(page_title="Stock Momentum Scanner", layout="wide")
-
 st.title("📈 Stock Momentum Scanner")
-st.caption("Calculate momentum factors for S&P 500, S&P 1500, or your own list.")
+st.caption("Momentum factors for S&P 500 / S&P 1500 or your own list.")
 
-st.markdown(" ")
+# -------- sidebar: sizing inputs --------------------------------
+with st.sidebar:
+    st.header("Position‑Sizing")
+    port_val = st.number_input(
+        "Total portfolio value",
+        min_value=1_000,
+        max_value=100_000_000,
+        value=1_000_000,
+        step=1_000
+    )
 
-# ---------- left-aligned action row ----------
-col1, col2, col3 = st.columns([2, 2, 3], gap="medium")
-
-with col1:
-    run_1500 = st.button("Run on S&P 1500", use_container_width=True)
-
-with col2:
-    run_500  = st.button("Run on S&P 500",  use_container_width=True)
+# -------- action row --------------------------------------------
+col1, col2, col3 = st.columns([2,2,3], gap="medium")
+run_1500 = col1.button("Run on S&P 1500", use_container_width=True)
+run_500  = col2.button("Run on S&P 500",  use_container_width=True)
 
 with col3:
-    st.markdown(
-        "**Upload CSV**\n*(file **must** contain a column named `Symbol`)*",
-        help="Header must literally be Symbol – case-sensitive."
-    )
-    uploaded_file = st.file_uploader(
-        label="Drag & drop or browse",
-        type="csv",
-        label_visibility="collapsed"
-    )
-    run_custom = st.button("Run on my CSV",
-                           disabled=uploaded_file is None,
-                           use_container_width=True)
+    st.markdown("**Upload CSV**  \n*(must contain column `Symbol`)*")
+    upload = st.file_uploader(" ", type="csv", label_visibility="collapsed")
+    run_custom = st.button("Run on my CSV", disabled=upload is None, use_container_width=True)
 
 st.divider()
 
-# ---------- logic ----------
+# -------- main logic --------------------------------------------
 if run_1500 or run_500 or run_custom:
     if run_custom:
-        try:
-            df_user = pd.read_csv(uploaded_file)
-        except Exception as e:
-            st.error(f"Could not read CSV: {e}")
-            st.stop()
-
-        if "Symbol" not in df_user.columns:
-            st.error("Uploaded CSV is missing a **Symbol** column.")
-            st.stop()
-
-        symbols = _clean_symbols(df_user)
-        label   = "Your list"
+        df_raw = pd.read_csv(upload)
+        if "Symbol" not in df_raw.columns:
+            st.error("CSV missing `Symbol` header."); st.stop()
+        symbols, label = _clean_symbols(df_raw), "Your list"
     else:
-        label_key = "S&P 1500" if run_1500 else "S&P 500"
-        df_pres   = pd.read_csv(DATASETS[label_key])
-        symbols   = _clean_symbols(df_pres)
-        label     = label_key
+        key = "S&P 1500" if run_1500 else "S&P 500"
+        symbols, label = _clean_symbols(pd.read_csv(DATASETS[key])), key
 
-    with st.spinner(f"Starting analysis for {label} …"):
-        last_dt, results = run_momentum(symbols, label)
+    with st.spinner(f"Running momentum on {label} …"):
+        last_dt, tbl = run_momentum(symbols, label)
 
-    st.success(f"Finished! Metrics as of **{last_dt}**")
+    # store results so they persist across widget interactions
+    st.session_state["results"] = tbl
+    st.session_state["label"]   = label
+    st.session_state["last_dt"] = last_dt
 
-    st.dataframe(results, use_container_width=True)
+# -------- display & interactive sizing if we have saved results ------------
+if st.session_state["results"] is not None:
+    tbl   = st.session_state["results"]
+    label = st.session_state["label"]
+    last_dt = st.session_state["last_dt"]
 
-    st.markdown(" ")
+    st.success(f"Metrics as of {last_dt}. Select stocks below to size your portfolio.")
+    st.dataframe(tbl, use_container_width=True)
 
-    st.download_button(
-        label="⬇️ Download CSV",
-        data=results.to_csv().encode(),
-        file_name=f"{label.replace(' ', '').lower()}_momentum_{last_dt}.csv",
-        mime="text/csv",
-        use_container_width=True,
+    # multiselect in original momentum order but labelled with rank
+    opts = [f"{i+1:02d} | {t}" for i, t in enumerate(tbl.index)]
+    default = opts[:10]
+
+    chosen_labels = st.multiselect(
+        "Select stocks to include in portfolio 👉",
+        options=opts,
+        default=default
     )
-else:
-    st.info("Choose or upload a list to analyze.", icon="ℹ️")
+
+    if chosen_labels:
+        # sort selections back to momentum rank order
+        chosen_labels_sorted = sorted(
+            chosen_labels,
+            key=lambda x: int(x.split('|')[0])  # rank is before the pipe
+        )
+        tickers = [c.split('|')[1].strip() for c in chosen_labels_sorted]
+        tbl_top = tbl.loc[tickers].copy()
+        positive_mom = tbl_top["momentum"].clip(lower=0)
+        weights = positive_mom / positive_mom.sum()
+        cash_alloc = weights * port_val
+        shares = np.floor(cash_alloc / tbl_top["last_price"])
+        tbl_top["shares"] = shares.astype(int)
+        tbl_top = tbl_top.sort_values("Rank")
+
+        st.subheader("📊 Portfolio allocation")
+        st.dataframe(tbl_top, use_container_width=True)
+
+        csv = tbl_top.to_csv().encode()
+        st.download_button(
+            "⬇️ Download portfolio CSV",
+            csv,
+            file_name=f"{label.replace(' ','').lower()}_{last_dt}_portfolio.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
+    else:
+        st.info("Select at least one stock to build a portfolio.", icon="ℹ️")
