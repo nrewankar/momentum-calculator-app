@@ -47,7 +47,6 @@ BHF,Brighthouse Financial,Financials
 BILL,Bill Holdings,Information Technology
 BIO,Bio-Rad Laboratories,Health Care
 BJ,BJ's Wholesale Club,Consumer Staples
-BKH,Black Hills Corporation,Utilities
 BMRN,BioMarin Pharmaceutical,Health Care
 BRKR,Bruker,Health Care
 BROS,Dutch Bros Inc.,Consumer Discretionary
@@ -76,6 +75,7 @@ CHE,Chemed Corp.,Health Care
 CHH,Choice Hotels,Consumer Discretionary
 CHRD,Chord Energy,Energy
 CHWY,Chewy,Consumer Discretionary
+CHYM,Chime Financial,Financials
 CLF,Cleveland-Cliffs,Materials
 CLH,Clean Harbors,Industrials
 CMC,Commercial Metals,Materials
@@ -184,6 +184,7 @@ HRB,H&R Block,Consumer Discretionary
 HUBS,HubSpot,Information Technology
 HWC,Hancock Whitney,Financials
 HXL,Hexcel,Industrials
+HZN,Bright Horizon Energy Corporation,Utilities
 IBOC,Intl Bancshares Corp,Financials
 IDA,Idacorp,Utilities
 IDCC,InterDigital,Information Technology
@@ -251,7 +252,6 @@ NOVT,Novanta,Information Technology
 NTNX,Nutanix,Information Technology
 NVST,Envista Holdings,Health Care
 NVT,nVent Electric plc,Industrials
-NWE,NorthWestern Energy,Utilities
 NXST,Nexstar Media Group,Communication Services
 NXT,Nextpower,Industrials
 NYT,New York Times Company,Communication Services
