@@ -25,3 +25,4 @@ OGN     # Sun Pharmaceutical / $14.00 cash, announced 2026-04-26, close expected
 CZR     # Fertitta Entertainment / $31.00 cash, announced 2026-05-28 (go-shop ended 2026-07-11), close expected 2027, confirmed 2026-11-13
 ITGR    # KKR / $127.00 cash, announced 2026-08-03, HSR early termination 2026-09-30, shareholders approved 2026-10-21, close expected by end 2026, confirmed 2026-11-13
 LITE    # Marvell Technology / all-stock, 4.500 MRVL per share, announced 2026-11-02 (agreement dated 2026-11-01), close expected 1H 2028, confirmed 2026-11-13
+RXO     # C.H. Robinson / ~$5.8B cash + stock, announced Nov 2026, confirmed 2026-11-22
