@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*.pyc
+
+# Regenerated on every run
+.cache/
+
+.DS_Store

@@ -1,4 +1,8 @@
-streamlit
-pandas
-numpy
-yfinance
+pandas>=2.0
+numpy>=1.24
+yfinance>=0.2.59
+requests>=2.31
+lxml>=5.0          # pandas.read_html backend for the Wikipedia constituent tables
+
+# Only needed by the legacy Streamlit app in app.py, not by momentum_scan.py
+# streamlit

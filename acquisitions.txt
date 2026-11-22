@@ -1,0 +1,27 @@
+# Tickers under a pending acquisition / merger.
+#
+# Maintained automatically by the weekly-momentum-scan scheduled task. It adds
+# a line whenever it confirms a name in the top 30 has an announced deal, and
+# removes lines once a deal has closed or been terminated.
+#
+# Why these are excluded: a stock under a cash acquisition trades pinned to the
+# agreed takeout price, so its realized volatility collapses. Since the
+# momentum score divides the trailing return by volatility, a shrinking
+# denominator inflates the score and pushes the name to the top of the ranking.
+# The trend is over - upside is capped at the deal price - so it is a bad
+# rebalance candidate despite the high score.
+#
+# Format: TICKER  # acquirer / status, confirmed YYYY-MM-DD
+# You can add entries by hand too; the scan reads this file every run.
+
+BHF     # Aquarian Holdings / $70.00 cash, announced 2025-11-06, shareholders approved 2026-02-12, confirmed 2026-08-17
+PEN     # Boston Scientific / $374 cash-or-stock election, announced 2026-01-14, shareholders approved 2026-05-06, confirmed 2026-08-17
+SLAB    # Texas Instruments / $231.00 cash, announced 2026-02-04, shareholders approved 2026-04-30, confirmed 2026-08-17
+UNF     # Cintas / $155 cash + 0.7720 CTAS shares, announced 2026-03-10, FTC second request pending, confirmed 2026-08-17
+LNTH    # Curium / $102.50 cash + CVR up to $12, announced 2026-08-03, confirmed 2026-08-17
+AES     # GIP/EQT-led consortium / $15.00 cash, announced 2026-03-02, shareholders approved 2026-06-26, awaiting PUCO/NYPSC/FERC/CFIUS, confirmed 2026-09-14
+IRDM    # Rocket Lab / $27.00 cash + RKLB stock (~$54 total, collar), announced 2026-06-29, shareholders approved 2026-09-24, close expected mid-2027, confirmed 2026-09-28
+OGN     # Sun Pharmaceutical / $14.00 cash, announced 2026-04-26, close expected early 2027, confirmed 2026-10-26
+CZR     # Fertitta Entertainment / $31.00 cash, announced 2026-05-28 (go-shop ended 2026-07-11), close expected 2027, confirmed 2026-11-13
+ITGR    # KKR / $127.00 cash, announced 2026-08-03, HSR early termination 2026-09-30, shareholders approved 2026-10-21, close expected by end 2026, confirmed 2026-11-13
+LITE    # Marvell Technology / all-stock, 4.500 MRVL per share, announced 2026-11-02 (agreement dated 2026-11-01), close expected 1H 2028, confirmed 2026-11-13
