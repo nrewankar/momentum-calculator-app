@@ -6,7 +6,7 @@ on:
     inputs:
       top:
         description: "Rows to print"
-        default: "30"
+        default: "20"
 
 permissions:
   contents: write
@@ -30,7 +30,7 @@ jobs:
         run: python test_momentum_core.py
       - name: Scan the S&P 1500
         run: |
-          python momentum_scan.py --universe sp1500 --top "${{ inputs.top }}" --cache-ttl 0 > results/latest.md
+          python momentum_scan.py --universe sp1500 --top "${{ inputs.top }}" --hold 10 --cache-ttl 0 > results/latest.md
           cat results/latest.md >> "$GITHUB_STEP_SUMMARY"
       - name: Save results to the repo
         run: |

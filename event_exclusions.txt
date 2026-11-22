@@ -1,0 +1,13 @@
+# Tickers whose 12-1 move came from a one-off event, not a trend.
+#
+# Momentum works when a trend builds from many small moves. A return made in a
+# single event day (a takeover bid that failed, an FDA ruling, a legal
+# settlement, a short squeeze, a one-time accounting gain) tends not to
+# continue, so it is a poor rebalance candidate even with a high score.
+# See "Frog in the Pan", Da, Gurun & Warachka (2014).
+#
+# Added by Claude after researching names under CHECK FOR EVENT SPIKES.
+# Remove a line once the event day is more than 12 months old: it has left
+# the t-252 window and no longer drives the score.
+#
+# Format: TICKER  # event, event date, expires YYYY-MM-DD, confirmed YYYY-MM-DD

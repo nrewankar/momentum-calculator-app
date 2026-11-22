@@ -167,9 +167,19 @@ Ask Claude in the Life project to run it, or press "Run workflow" in the
 Actions tab. The Action runs the tests, scans the S&P 1500 with a fresh
 download, writes `results/latest.md` plus the dated CSV, and commits both.
 
-Acquisition check: the run prints `CHECK FOR PENDING ACQUISITIONS`. Claude
-web-searches each flagged name and adds confirmed deals to `acquisitions.txt`
-(then re-runs if the top 10 changed), which replaces the old Monday task.
+Each run prints the top 20 with a spike check, two lists to research, and
+the weights for the top 10:
+
+- `CHECK FOR PENDING ACQUISITIONS`: a low-vol or collapsing-vol signature.
+  Confirmed announced deals go in `acquisitions.txt`.
+- `CHECK FOR EVENT SPIKES`: the biggest single day is 30% or more of the 12-1
+  log return, or the frog-in-the-pan ID is 0 or higher (the trend moved in
+  lumps). If the cause is a one-off event, the name goes in
+  `event_exclusions.txt`, with an expiry 12 months after the event day.
+
+Claude researches every top-20 name, updates those files on `main`, and re-runs
+until the top 10 is clean. This replaces the old Monday task. The spike columns
+are for reporting only and never change the score.
 
 ## Verifying the math
 
@@ -191,4 +201,5 @@ all-negative-weights, volatility-filter and short-history edge cases.
 | `test_momentum_core.py` | Checks on the math |
 | `exclusions.txt` | Your standing "never show me these" list |
 | `acquisitions.txt` | Confirmed pending deals, maintained by Claude when a run flags one |
+| `event_exclusions.txt` | Names whose move was a one-off event, with expiry dates |
 | `app.py` | Legacy Streamlit UI. Still uses the old, incorrect formula — kept only for reference |
