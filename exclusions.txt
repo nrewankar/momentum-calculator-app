@@ -1,0 +1,11 @@
+# Tickers to permanently drop from every scan.
+#
+# One symbol per line. Blank lines and anything after a # are ignored.
+# Share classes can be written either way - BRK.B and BRK-B both work.
+#
+# The Monday scheduled task reads this file automatically, so anything you
+# add here stays excluded from every future run without editing the task.
+#
+# Examples (delete the # to activate):
+# TSLA        # too volatile for my sizing
+# SMCI        # accounting concerns
